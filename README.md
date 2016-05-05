@@ -284,3 +284,157 @@ Next(2)
 * `rx_tap` 存在于 button 中，封装了 @IBActions
 * `rx_notification` 封装了 NotificationCenter
 * ...
+
+
+# Subjects
+Subject 可以看成是一个桥梁或者代理，在某些ReactiveX实现中，它同时充当了 Observer 和 Observable 的角色。因为它是一个Observer，它可以订阅一个或多个 Observable；又因为它是一个 Observable，它可以转发它收到(Observe)的数据，也可以发射新的数据。(翻译参考自 [ReactiveX文档中文翻译](https://mcxiaoke.gitbooks.io/rxdocs/content/Subject.html))
+
+辅助函数：
+
+```swift
+func writeSequenceToConsole<O: ObservableType>(name: String, sequence: O) -> Disposable {
+    return sequence
+        .subscribe { e in
+            print("Subscription: \(name), event: \(e)")
+        }
+}
+```
+
+## PublishSubject
+
+`PublishSubject` 只会把在订阅发生的时间点之后来自原始Observable的数据发射给观察者。
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/publishsubject.png)
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/publishsubject_error.png)
+
+```swift
+example("PublishSubject") {
+    let disposeBag = DisposeBag()
+
+    let subject = PublishSubject<String>()
+    writeSequenceToConsole("1", sequence: subject).addDisposableTo(disposeBag)
+    subject.on(.Next("a"))
+    subject.on(.Next("b"))
+    writeSequenceToConsole("2", sequence: subject).addDisposableTo(disposeBag)
+    subject.on(.Next("c"))
+    subject.on(.Next("d"))
+}
+```
+
+运行结果：
+
+```
+--- PublishSubject example ---
+Subscription: 1, event: Next(a)
+Subscription: 1, event: Next(b)
+Subscription: 1, event: Next(c)
+Subscription: 2, event: Next(c)
+Subscription: 1, event: Next(d)
+Subscription: 2, event: Next(d)
+```
+
+## ReplaySubject
+
+`ReplaySubject` 会发射所有来自原始Observable的数据给观察者，无论它们是何时订阅的。当一个新的 observer 订阅了一个 `ReplaySubject` 之后，他将会收到当前缓存在 buffer 中的数据和这之后产生的新数据。在下面的例子中，缓存大小为 `1` 所以 observer 将最多能够收到订阅时间点之前的一个数据。例如，`Subscription: 2` 能够收到消息 `"b"`，而这个消息是在他订阅之前发送的，但是没有办法收到消息 `"a"` 因为缓存的容量小于 `2`。
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/replaysubject.png)
+
+```swift
+example("ReplaySubject") {
+    let disposeBag = DisposeBag()
+    let subject = ReplaySubject<String>.create(bufferSize: 1)
+
+    writeSequenceToConsole("1", sequence: subject).addDisposableTo(disposeBag)
+    subject.on(.Next("a"))
+    subject.on(.Next("b"))
+    writeSequenceToConsole("2", sequence: subject).addDisposableTo(disposeBag)
+    subject.on(.Next("c"))
+    subject.on(.Next("d"))
+}
+```
+
+运行结果：
+
+```
+--- ReplaySubject example ---  
+Subscription: 1, event: Next(a)  
+Subscription: 1, event: Next(b)  
+Subscription: 2, event: Next(b)  
+Subscription: 1, event: Next(c)  
+Subscription: 2, event: Next(c)  
+Subscription: 1, event: Next(d)  
+Subscription: 2, event: Next(d)  
+```
+
+## BehaviorSubject
+
+当观察者订阅 `BehaviorSubject` 时，它开始发射原始 Observable 最近发射的数据（如果此时还没有收到任何数据，它会发射一个默认值），然后继续发射其它任何来自原始Observable的数据。 
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/behaviorsubject.png)
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/behaviorsubject_error.png)
+
+```swift
+example("BehaviorSubject") {
+    let disposeBag = DisposeBag()
+
+    let subject = BehaviorSubject(value: "z")
+    writeSequenceToConsole("1", sequence: subject).addDisposableTo(disposeBag)
+    subject.on(.Next("a"))
+    subject.on(.Next("b"))
+    writeSequenceToConsole("2", sequence: subject).addDisposableTo(disposeBag)
+    subject.on(.Next("c"))
+    subject.on(.Next("d"))
+    subject.on(.Completed)
+}
+```
+
+运行结果：
+
+```
+--- BehaviorSubject example ---
+Subscription: 1, event: Next(z)
+Subscription: 1, event: Next(a)
+Subscription: 1, event: Next(b)
+Subscription: 2, event: Next(b)
+Subscription: 1, event: Next(c)
+Subscription: 2, event: Next(c)
+Subscription: 1, event: Next(d)
+Subscription: 2, event: Next(d)
+Subscription: 1, event: Completed
+Subscription: 2, event: Completed
+```
+
+## Variable
+
+`Variable` 封装了 `BehaviorSubject`。使用 variable 的好处是 variable 将不会显式的发送 `Error` 或者 `Completed`。在 deallocated 的时候，`Variable` 会自动的发送 complete 事件。
+
+```swift
+example("Variable") {
+    let disposeBag = DisposeBag()
+    let variable = Variable("z")
+    writeSequenceToConsole("1", sequence: variable.asObservable()).addDisposableTo(disposeBag)
+    variable.value = "a"
+    variable.value = "b"
+    writeSequenceToConsole("2", sequence: variable.asObservable()).addDisposableTo(disposeBag)
+    variable.value = "c"
+    variable.value = "d"
+}
+```
+
+运行结果：
+
+```
+--- Variable example ---
+Subscription: 1, event: Next(z)
+Subscription: 1, event: Next(a)
+Subscription: 1, event: Next(b)
+Subscription: 2, event: Next(b)
+Subscription: 1, event: Next(c)
+Subscription: 2, event: Next(c)
+Subscription: 1, event: Next(d)
+Subscription: 2, event: Next(d)
+Subscription: 1, event: Completed
+Subscription: 2, event: Completed
+```
