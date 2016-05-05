@@ -1,13 +1,6 @@
-- [Introduction](Introduction)
-- [Subjects](Subjects)
-- [Transforming Observables](Transforming_Observables)
-- [Filtering Observables](Filtering_Observables)
-- [Combining Observables](Combining_Observables)
-- [Error Handling Operators](Error_Handling_Operators)
-- [Observable Utility Operators](Observable_Utility_Operators)
-- [Conditional and Boolean Operators](Conditional_and_Boolean_Operators)
-- [Mathematical and Aggregate Operators](Mathematical_and_Aggregate_Operators)
-- [Connectable Observable Operators](Connectable_Observable_Operators)
+> 本文档内容来自于 [RxSwift](https://github.com/ReactiveX/RxSwift) 的 Playground。记录大多数 ReactiveX 的概念和操作符。
+
+(部分翻译和注解来自 [ReactiveX文档中文翻译](https://mcxiaoke.gitbooks.io/rxdocs/content/Subject.html))
 
 # Introduction
 
@@ -287,7 +280,7 @@ Next(2)
 
 
 # Subjects
-Subject 可以看成是一个桥梁或者代理，在某些ReactiveX实现中，它同时充当了 Observer 和 Observable 的角色。因为它是一个Observer，它可以订阅一个或多个 Observable；又因为它是一个 Observable，它可以转发它收到(Observe)的数据，也可以发射新的数据。(翻译参考自 [ReactiveX文档中文翻译](https://mcxiaoke.gitbooks.io/rxdocs/content/Subject.html))
+Subject 可以看成是一个桥梁或者代理，在某些ReactiveX实现中，它同时充当了 Observer 和 Observable 的角色。因为它是一个Observer，它可以订阅一个或多个 Observable；又因为它是一个 Observable，它可以转发它收到(Observe)的数据，也可以发射新的数据。
 
 辅助函数：
 
@@ -438,3 +431,635 @@ Subscription: 2, event: Next(d)
 Subscription: 1, event: Completed
 Subscription: 2, event: Completed
 ```
+
+
+## 变换操作
+
+下面列出了可用于对 Observable 发射的数据执行变换操作的各种操作符。
+
+### `map` / `select`
+
+对序列的每一项都应用一个函数来变换 Observable 发射的数据序列
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/map.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/map.html )
+
+```swift
+example("map") {
+    let originalSequence = Observable.of(1, 2, 3)
+
+    _ = originalSequence
+        .map { number in
+            number * 2
+        }
+        .subscribe { print($0) }
+}
+```
+
+运行结果：
+
+```
+--- map example ---
+Next(2)
+Next(4)
+Next(6)
+Completed
+```
+
+
+
+### `flatMap`
+
+将每个 Obserable 发射的数据变换为 Observable 的集合，然后将其 "拍扁"（降维 flatten）成一个 Observable。
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/flatmap.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/flatmap.html )
+
+```swift
+example("flatMap") {
+    let sequenceInt = Observable.of(1, 2, 3)
+
+    let sequenceString = Observable.of("A", "B", "C", "D", "E", "F", "--")
+
+    _ = sequenceInt
+        .flatMap { (x:Int) -> Observable<String> in
+            print("from sequenceInt \(x)")
+            return sequenceString
+        }
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- flatMap example ---
+from sequenceInt 1
+Next(A)
+Next(B)
+Next(C)
+Next(D)
+Next(E)
+Next(F)
+Next(--)
+from sequenceInt 2
+Next(A)
+Next(B)
+Next(C)
+Next(D)
+Next(E)
+Next(F)
+Next(--)
+from sequenceInt 3
+Next(A)
+Next(B)
+Next(C)
+Next(D)
+Next(E)
+Next(F)
+Next(--)
+Completed
+```
+
+### `scan`
+
+对 Observable 发射的每一项数据应用一个函数，然后按顺序依次发射每一个值
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/scan.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/scan.html )
+
+```swift
+example("scan") {
+    let sequenceToSum = Observable.of(0, 1, 2, 3, 4, 5)
+
+    _ = sequenceToSum
+        .scan(0) { acum, elem in
+            acum + elem
+        }
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- scan example ---
+Next(0)
+Next(1)
+Next(3)
+Next(6)
+Next(10)
+Next(15)
+Completed
+```
+
+## 过滤操作
+
+从源 Observable 中选择特定的数据发送
+
+### `filter`
+
+只发送 Observable 中通过特定测试的数据
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/filter.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/filter.html )
+
+```swift
+example("filter") {
+    let subscription = Observable.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+        .filter {
+            $0 % 2 == 0
+        }
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- filter example ---
+Next(0)
+Next(2)
+Next(4)
+Next(6)
+Next(8)
+Completed
+```
+
+
+### `distinctUntilChanged`
+
+过滤掉连续重复的数据
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/distinct.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/distinct.html )
+
+```swift
+example("distinctUntilChanged") {
+    let subscription = Observable.of(1, 2, 3, 1, 1, 4)
+        .distinctUntilChanged()
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- distinctUntilChanged example ---
+Next(1)
+Next(2)
+Next(3)
+Next(1)
+Next(4)
+Completed
+```
+
+
+### `take`
+
+仅发送 Observable 的前 n 个数据项
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/take.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/take.html )
+
+```swfit
+example("take") {
+    let subscription = Observable.of(1, 2, 3, 4, 5, 6)
+        .take(3)
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- take example ---
+Next(1)
+Next(2)
+Next(3)
+Completed
+```
+
+## 结合操作(Combination operators)
+
+将多个 Observable 结合成一个 Observable
+
+
+### `startWith`
+
+在数据序列的开头增加一些数据
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/startwith.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/startwith.html )
+
+```swift
+example("startWith") {
+
+    let subscription = Observable.of(4, 5, 6, 7, 8, 9)
+        .startWith(3)
+        .startWith(2)
+        .startWith(1)
+        .startWith(0)
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- startWith example ---
+Next(0)
+Next(1)
+Next(2)
+Next(3)
+Next(4)
+Next(5)
+Next(6)
+Next(7)
+Next(8)
+Next(9)
+Completed
+```
+
+
+### `combineLatest`
+
+当两个 Observables 中的任何一个发射了一个数据时，通过一个指定的函数组合每个Observable发射的最新数据（一共两个数据），然后发射这个函数的结果
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/combinelatest.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/combinelatest.html )
+
+```swift
+example("combineLatest 1") {
+    let intOb1 = PublishSubject<String>()
+    let intOb2 = PublishSubject<Int>()
+
+    _ = Observable.combineLatest(intOb1, intOb2) {
+        "\($0) \($1)"
+        }
+        .subscribe {
+            print($0)
+        }
+
+    intOb1.on(.Next("A"))
+
+    intOb2.on(.Next(1))
+
+    intOb1.on(.Next("B"))
+
+    intOb2.on(.Next(2))
+}
+```
+
+运行结果：
+
+```
+--- combineLatest 1 example ---
+Next(A 1)
+Next(B 1)
+Next(B 2)
+```
+
+为了能够产生结果，两个序列中都必须保证至少有一个元素
+
+```swift
+example("combineLatest 2") {
+    let intOb1 = Observable.just(2)
+    let intOb2 = Observable.of(0, 1, 2, 3, 4)
+
+    _ = Observable.combineLatest(intOb1, intOb2) {
+            $0 * $1
+        }
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- combineLatest 2 example ---
+Next(0)
+Next(2)
+Next(4)
+Next(6)
+Next(8)
+Completed
+```
+
+Combine latest 有超过 2 个参数的版本
+
+```swift
+example("combineLatest 3") {
+    let intOb1 = Observable.just(2)
+    let intOb2 = Observable.of(0, 1, 2, 3)
+    let intOb3 = Observable.of(0, 1, 2, 3, 4)
+
+    _ = Observable.combineLatest(intOb1, intOb2, intOb3) {
+            ($0 + $1) * $2
+        }
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- combineLatest 3 example ---
+Next(0)
+Next(5)
+Next(10)
+Next(15)
+Next(20)
+Completed
+```
+
+Combinelatest 可以作用于不同数据类型的序列
+
+```swift
+example("combineLatest 4") {
+    let intOb = Observable.just(2)
+    let stringOb = Observable.just("a")
+    
+    _ = Observable.combineLatest(intOb, stringOb) {
+            "\($0) " + $1
+        }
+        .subscribe {
+            print($0)
+    }
+}
+```
+
+运行结果：
+
+```
+--- combineLatest 4 example ---
+Next(2 a)
+Completed
+```
+
+`combineLatest` 方法可以在 Array 上使用，数组元素类型必须遵循 `ObservableType` 协议  
+数组中的元素类型必须为 `Observables`
+
+```swift
+example("combineLatest 5") {
+    let intOb1 = Observable.just(2)
+    let intOb2 = Observable.of(0, 1, 2, 3)
+    let intOb3 = Observable.of(0, 1, 2, 3, 4)
+    
+    _ = [intOb1, intOb2, intOb3].combineLatest { intArray -> Int in
+            Int((intArray[0] + intArray[1]) * intArray[2])
+        }
+        .subscribe { (event: Event<Int>) -> Void in
+            print(event)
+        }
+}
+```
+
+### `zip`
+
+使用一个函数组合多个Observable发射的数据集合，然后再发射这个结果(从序列中依次取数据)
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/zip.png)
+
+[More info in reactive.io website](http://reactivex.io/documentation/operators/zip.html)
+
+```swift
+example("zip 1") {
+    let intOb1 = PublishSubject<String>()
+    let intOb2 = PublishSubject<Int>()
+
+    _ = Observable.zip(intOb1, intOb2) {
+        "\($0) \($1)"
+        }
+        .subscribe {
+            print($0)
+        }
+
+    intOb1.on(.Next("A"))
+
+    intOb2.on(.Next(1))
+
+    intOb1.on(.Next("B"))
+
+    intOb1.on(.Next("C"))
+
+    intOb2.on(.Next(2))
+}
+```
+
+运行结果：
+
+```
+--- zip 1 example ---
+Next(A 1)
+Next(B 2)
+```
+
+```swift
+example("zip 2") {
+    let intOb1 = Observable.just(2)
+
+    let intOb2 = Observable.of(0, 1, 2, 3, 4)
+
+    _ = Observable.zip(intOb1, intOb2) {
+            $0 * $1
+        }
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- zip 2 example ---
+Next(0)
+Completed
+```
+
+
+```swift
+example("zip 3") {
+    let intOb1 = Observable.of(0, 1)
+    let intOb2 = Observable.of(0, 1, 2, 3)
+    let intOb3 = Observable.of(0, 1, 2, 3, 4)
+
+    _ = Observable.zip(intOb1, intOb2, intOb3) {
+            ($0 + $1) * $2
+        }
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- zip 3 example ---
+Next(0)
+Next(2)
+Completed
+```
+
+
+### `merge`
+
+合并多个 Observables 的组合成一个
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/merge.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/merge.html )
+
+```swift
+example("merge 1") {
+    let subject1 = PublishSubject<Int>()
+    let subject2 = PublishSubject<Int>()
+
+    _ = Observable.of(subject1, subject2)
+        .merge()
+        .subscribeNext { int in
+            print(int)
+        }
+
+    subject1.on(.Next(20))
+    subject1.on(.Next(40))
+    subject1.on(.Next(60))
+    subject2.on(.Next(1))
+    subject1.on(.Next(80))
+    subject1.on(.Next(100))
+    subject2.on(.Next(1))
+}
+```
+
+运行结果：
+
+```
+--- merge 1 example ---
+20
+40
+60
+1
+80
+100
+1
+```
+
+```swift
+example("merge 2") {
+    let subject1 = PublishSubject<Int>()
+    let subject2 = PublishSubject<Int>()
+
+    _ = Observable.of(subject1, subject2)
+        .merge(maxConcurrent: 2)
+        .subscribe {
+            print($0)
+        }
+
+    subject1.on(.Next(20))
+    subject1.on(.Next(40))
+    subject1.on(.Next(60))
+    subject2.on(.Next(1))
+    subject1.on(.Next(80))
+    subject1.on(.Next(100))
+    subject2.on(.Next(1))
+}
+```
+
+运行结果：
+
+```
+--- merge 2 example ---
+Next(20)
+Next(40)
+Next(60)
+Next(1)
+Next(80)
+Next(100)
+Next(1)
+```
+
+
+### `switchLatest`
+
+将一个发射多个 Observables 的 Observable 转换成另一个单独的 Observable，后者发射那些 Observables 最近发射的数据项
+
+Switch 订阅一个发射多个 Observables 的 Observable。它每次观察那些 Observables 中的一个，Switch 返回的这个Observable取消订阅前一个发射数据的 Observable，开始发射最近的Observable 发射的数据。注意：当原始 Observable 发射了一个新的 Observable 时（不是这个新的 Observable 发射了一条数据时），它将取消订阅之前的那个 Observable。这意味着，在后来那个 Observable 产生之后到它开始发射数据之前的这段时间里，前一个 Observable 发射的数据将被丢弃
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/switch.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/switch.html )
+
+
+```swift
+example("switchLatest") {
+    let var1 = Variable(0)
+
+    let var2 = Variable(200)
+
+    // var3 is like an Observable<Observable<Int>>
+    let var3 = Variable(var1.asObservable())
+
+    let d = var3
+        .asObservable()
+        .switchLatest()
+        .subscribe {
+            print($0)
+        }
+
+    var1.value = 1
+    var1.value = 2
+    var1.value = 3
+    var1.value = 4
+
+    var3.value = var2.asObservable()
+
+    var2.value = 201
+
+    var1.value = 5
+    var1.value = 6
+    var1.value = 7
+}
+```
+
+运行结果：
+
+```
+--- switchLatest example ---
+Next(0)
+Next(1)
+Next(2)
+Next(3)
+Next(4)
+Next(200)
+Next(201)
+Completed
+```
+
+
+
