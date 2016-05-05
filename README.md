@@ -443,7 +443,7 @@ Subscription: 2, event: Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/map.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/map.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/map.html )
 
 ```swift
 example("map") {
@@ -475,7 +475,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/flatmap.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/flatmap.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/flatmap.html )
 
 ```swift
 example("flatMap") {
@@ -531,7 +531,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/scan.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/scan.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/scan.html )
 
 ```swift
 example("scan") {
@@ -570,7 +570,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/filter.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/filter.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/filter.html )
 
 ```swift
 example("filter") {
@@ -603,7 +603,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/distinct.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/distinct.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/distinct.html )
 
 ```swift
 example("distinctUntilChanged") {
@@ -634,7 +634,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/take.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/take.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/take.html )
 
 ```swfit
 example("take") {
@@ -667,7 +667,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/startwith.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/startwith.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/startwith.html )
 
 ```swift
 example("startWith") {
@@ -707,7 +707,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/combinelatest.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/combinelatest.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/combinelatest.html )
 
 ```swift
 example("combineLatest 1") {
@@ -845,7 +845,7 @@ example("combineLatest 5") {
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/zip.png)
 
-[More info in reactive.io website](http://reactivex.io/documentation/operators/zip.html)
+[更多相关内容请查看 reactive.io](http://reactivex.io/documentation/operators/zip.html)
 
 ```swift
 example("zip 1") {
@@ -934,7 +934,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/merge.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/merge.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/merge.html )
 
 ```swift
 example("merge 1") {
@@ -1013,7 +1013,7 @@ Switch 订阅一个发射多个 Observables 的 Observable。它每次观察那�
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/switch.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/switch.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/switch.html )
 
 
 ```swift
@@ -1072,7 +1072,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/catch.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/catch.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/catch.html )
 
 
 ```swift
@@ -1147,7 +1147,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/retry.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/retry.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/retry.html )
 
 
 ```swift
@@ -1200,7 +1200,7 @@ Completed
 
 ### `subscribe`
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/subscribe.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/subscribe.html )
 
 ```swift
 example("subscribe") {
@@ -1305,7 +1305,7 @@ Error Domain=Examples Code=-1 "(null)"
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/do.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/do.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/do.html )
 
 
 ```swift
@@ -1347,7 +1347,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/takeuntil.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/takeuntil.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/takeuntil.html )
 
 ```swift
 example("takeUntil") {
@@ -1389,7 +1389,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/takewhile.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/takewhile.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/takewhile.html )
 
 ```swift
 example("takeWhile") {
@@ -1431,7 +1431,7 @@ Completed
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/concat.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/concat.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/concat.html )
 
 ```swift
 example("concat") {
@@ -1492,7 +1492,7 @@ Next(204)
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/reduce.png)
 
-[More info in reactive.io website]( http://reactivex.io/documentation/operators/reduce.html )
+[更多相关内容请查看 reactive.io]( http://reactivex.io/documentation/operators/reduce.html )
 
 ```swift
 example("reduce") {
