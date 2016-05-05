@@ -1062,4 +1062,452 @@ Completed
 ```
 
 
+## Error Handling Operators
 
+下面的操作符帮助我们从 Observable 发射的 error 通知做出响应或者从错误中恢复。
+
+### `catchError`
+
+收到 `Error` 通知之后，转而发送一个没有错误的序列。
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/catch.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/catch.html )
+
+
+```swift
+example("catchError 1") {
+    let sequenceThatFails = PublishSubject<Int>()
+    let recoverySequence = Observable.of(100, 200, 300, 400)
+
+    _ = sequenceThatFails
+        .catchError { error in
+            return recoverySequence
+        }
+        .subscribe {
+            print($0)
+        }
+
+    sequenceThatFails.on(.Next(1))
+    sequenceThatFails.on(.Next(2))
+    sequenceThatFails.on(.Next(3))
+    sequenceThatFails.on(.Next(4))
+    sequenceThatFails.on(.Error(NSError(domain: "Test", code: 0, userInfo: nil)))
+}
+```
+
+运行结果：
+
+```
+--- catchError 1 example ---
+Next(1)
+Next(2)
+Next(3)
+Next(4)
+Next(100)
+Next(200)
+Next(300)
+Next(400)
+Completed
+```
+
+```swift
+example("catchError 2") {
+    let sequenceThatFails = PublishSubject<Int>()
+
+    _ = sequenceThatFails
+        .catchErrorJustReturn(100)
+        .subscribe {
+            print($0)
+        }
+
+    sequenceThatFails.on(.Next(1))
+    sequenceThatFails.on(.Next(2))
+    sequenceThatFails.on(.Next(3))
+    sequenceThatFails.on(.Next(4))
+    sequenceThatFails.on(.Error(NSError(domain: "Test", code: 0, userInfo: nil)))
+}
+```
+
+运行结果：
+
+```
+--- catchError 2 example ---
+Next(1)
+Next(2)
+Next(3)
+Next(4)
+Next(100)
+Completed
+```
+
+### `retry`
+
+如果原始 Observable 遇到错误，重新订阅，心里默念，不会出错不会出错...
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/retry.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/retry.html )
+
+
+```swift
+example("retry") {
+    var count = 1 // bad practice, only for example purposes
+    let funnyLookingSequence = Observable<Int>.create { observer in
+        let error = NSError(domain: "Test", code: 0, userInfo: nil)
+        observer.on(.Next(0))
+        observer.on(.Next(1))
+        observer.on(.Next(2))
+        if count < 2 {
+            observer.on(.Error(error))
+            count += 1
+        }
+        observer.on(.Next(3))
+        observer.on(.Next(4))
+        observer.on(.Next(5))
+        observer.on(.Completed)
+
+        return NopDisposable.instance
+    }
+
+    _ = funnyLookingSequence
+        .retry()
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- retry example ---
+Next(0)
+Next(1)
+Next(2)
+Next(0)
+Next(1)
+Next(2)
+Next(3)
+Next(4)
+Next(5)
+Completed
+```
+
+## Observable Utility Operators
+
+下面的操作符可以当做一个工具集，方便操作 Observable
+
+### `subscribe`
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/subscribe.html )
+
+```swift
+example("subscribe") {
+    let sequenceOfInts = PublishSubject<Int>()
+
+    _ = sequenceOfInts
+        .subscribe {
+            print($0)
+        }
+
+    sequenceOfInts.on(.Next(1))
+    sequenceOfInts.on(.Completed)
+}
+```
+
+运行结果：
+
+```
+--- subscribe example ---
+Next(1)
+Completed
+```
+
+下面是几个 `subscribe` 操作符的变体
+
+
+### `subscribeNext`
+
+```swift
+example("subscribeNext") {
+    let sequenceOfInts = PublishSubject<Int>()
+
+    _ = sequenceOfInts
+        .subscribeNext {
+            print($0)
+        }
+
+    sequenceOfInts.on(.Next(1))
+    sequenceOfInts.on(.Completed)
+}
+```
+
+运行结果：
+
+```
+--- subscribeNext example ---
+1
+```
+
+
+### `subscribeCompleted`
+
+```swift
+example("subscribeCompleted") {
+    let sequenceOfInts = PublishSubject<Int>()
+
+    _ = sequenceOfInts
+        .subscribeCompleted {
+            print("It's completed")
+        }
+
+    sequenceOfInts.on(.Next(1))
+    sequenceOfInts.on(.Completed)
+}
+```
+
+运行结果：
+
+```
+--- subscribeCompleted example ---
+It's completed
+```
+
+
+### `subscribeError`
+
+```swift
+example("subscribeError") {
+    let sequenceOfInts = PublishSubject<Int>()
+
+    _ = sequenceOfInts
+        .subscribeError { error in
+            print(error)
+        }
+
+    sequenceOfInts.on(.Next(1))
+    sequenceOfInts.on(.Error(NSError(domain: "Examples", code: -1, userInfo: nil)))
+}
+```
+
+运行结果：
+
+```
+--- subscribeError example ---
+Error Domain=Examples Code=-1 "(null)"
+```
+
+### `doOn`
+
+注册一个操作来监听事件的生命周期
+（register an action to take upon a variety of Observable lifecycle events）
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/do.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/do.html )
+
+
+```swift
+example("doOn") {
+    let sequenceOfInts = PublishSubject<Int>()
+
+    _ = sequenceOfInts
+        .doOn {
+            print("Intercepted event \($0)")
+        }
+        .subscribe {
+            print($0)
+        }
+
+    sequenceOfInts.on(.Next(1))
+    sequenceOfInts.on(.Completed)
+}
+```
+
+运行结果：
+
+```
+--- doOn example ---
+Intercepted event Next(1)
+Next(1)
+Intercepted event Completed
+Completed
+```
+
+
+## 条件和布尔操作（Conditional and Boolean Operators）
+
+下面的操作符可用于根据条件发射或变换 Observables，或者对它们做布尔运算：
+
+
+### `takeUntil`
+
+当第二个 Observable 发送数据之后，丢弃第一个 Observable 在这之后的所有消息。
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/takeuntil.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/takeuntil.html )
+
+```swift
+example("takeUntil") {
+    let originalSequence = PublishSubject<Int>()
+    let whenThisSendsNextWorldStops = PublishSubject<Int>()
+
+    _ = originalSequence
+        .takeUntil(whenThisSendsNextWorldStops)
+        .subscribe {
+            print($0)
+        }
+
+    originalSequence.on(.Next(1))
+    originalSequence.on(.Next(2))
+    originalSequence.on(.Next(3))
+    originalSequence.on(.Next(4))
+
+    whenThisSendsNextWorldStops.on(.Next(1))
+
+    originalSequence.on(.Next(5))
+}
+```
+
+运行结果：
+
+```
+--- takeUntil example ---
+Next(1)
+Next(2)
+Next(3)
+Next(4)
+Completed
+```
+
+
+### `takeWhile`
+
+发送原始 Observable 的数据，直到一个特定的条件为 false
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/takewhile.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/takewhile.html )
+
+```swift
+example("takeWhile") {
+
+    let sequence = PublishSubject<Int>()
+
+    _ = sequence
+        .takeWhile { int in
+            int < 4
+        }
+        .subscribe {
+            print($0)
+        }
+
+    sequence.on(.Next(1))
+    sequence.on(.Next(2))
+    sequence.on(.Next(3))
+    sequence.on(.Next(4))
+    sequence.on(.Next(5))
+}
+```
+
+运行结果：
+
+```
+--- takeWhile example ---
+Next(1)
+Next(2)
+Next(3)
+Completed
+```
+
+
+## 算数和聚合(Mathematical and Aggregate Operators)
+
+### `concat`
+
+合并两个或者以上的 Observable 的消息，并且这些消息的发送时间不会交叉。（队列先后顺序不会交叉）
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/concat.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/concat.html )
+
+```swift
+example("concat") {
+    let var1 = BehaviorSubject(value: 0)
+    let var2 = BehaviorSubject(value: 200)
+    
+    // var3 is like an Observable<Observable<Int>>
+    let var3 = BehaviorSubject(value: var1)
+    
+    let d = var3
+        .concat()
+        .subscribe {
+            print($0)
+        }
+    
+    var1.on(.Next(1))
+    var1.on(.Next(2))
+    var1.on(.Next(3))
+    var1.on(.Next(4))
+    
+    var3.on(.Next(var2))
+    
+    var2.on(.Next(201))
+    
+    var1.on(.Next(5))
+    var1.on(.Next(6))
+    var1.on(.Next(7))
+    var1.on(.Completed)
+    
+    var2.on(.Next(202))
+    var2.on(.Next(203))
+    var2.on(.Next(204))
+}
+```
+
+运行结果：
+
+```
+--- concat example ---
+Next(0)
+Next(1)
+Next(2)
+Next(3)
+Next(4)
+Next(5)
+Next(6)
+Next(7)
+Next(201)
+Next(202)
+Next(203)
+Next(204)
+```
+
+### `reduce`
+
+按顺序对Observable发射的每项数据应用一个函数并发射最终的值。  
+`Reduce` 操作符对原始 Observable 发射数据的第一项应用一个函数，然后再将这个函数的返回值与第二项数据一起传递给函数，以此类推，持续这个过程知道原始Observable发射它的最后一项数据并终止，此时 Reduce 返回的 Observable 发射这个函数返回的最终值。与数组序列的 `reduce` 操作类似。
+
+![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/reduce.png)
+
+[More info in reactive.io website]( http://reactivex.io/documentation/operators/reduce.html )
+
+```swift
+example("reduce") {
+    _ = Observable.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+        .reduce(0, accumulator: +)
+        .subscribe {
+            print($0)
+        }
+}
+```
+
+运行结果：
+
+```
+--- reduce example ---
+Next(45)
+Completed
+```
