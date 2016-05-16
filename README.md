@@ -362,7 +362,7 @@ Subscription: 2, event: Next(d)
 
 ## BehaviorSubject
 
-当观察者订阅 `BehaviorSubject` 时，它开始发射原始 Observable 最近发射的数据（如果此时还没有收到任何数据，它会发射一个默认值），然后继续发射其它任何来自原始Observable的数据。 
+当观察者订阅 `BehaviorSubject` 时，它开始发射原始 Observable 最近发射的数据（如果此时还没有收到任何数据，它会发射一个默认值），然后继续发射其它任何来自原始Observable的数据。
 
 ![](https://raw.githubusercontent.com/kzaher/rxswiftcontent/master/MarbleDiagrams/png/behaviorsubject.png)
 
@@ -803,7 +803,7 @@ Combinelatest 可以作用于不同数据类型的序列
 example("combineLatest 4") {
     let intOb = Observable.just(2)
     let stringOb = Observable.just("a")
-    
+
     _ = Observable.combineLatest(intOb, stringOb) {
             "\($0) " + $1
         }
@@ -829,7 +829,7 @@ example("combineLatest 5") {
     let intOb1 = Observable.just(2)
     let intOb2 = Observable.of(0, 1, 2, 3)
     let intOb3 = Observable.of(0, 1, 2, 3, 4)
-    
+
     _ = [intOb1, intOb2, intOb3].combineLatest { intArray -> Int in
             Int((intArray[0] + intArray[1]) * intArray[2])
         }
@@ -837,6 +837,41 @@ example("combineLatest 5") {
             print(event)
         }
 }
+```
+
+### `withLatestFrom`
+
+Merges two observable sequences into one observable sequence by using latest element from the second sequence every time when self emitts an element.
+
+将两个 Observable 序列合并为一个。每当 self 队列发射一个元素时，从第二个序列中取出最新的一个值。
+
+```swift
+example("withLatestFrom") {
+    let subjectA = PublishSubject<String>()
+    let subjectB = PublishSubject<String>()
+
+    subjectA
+        .withLatestFrom(subjectB)
+        .subscribeNext({ (data) in
+            print(data)
+        })
+
+    subjectA.onNext("a1")
+    subjectB.onNext("b1")
+    subjectA.onNext("a2")
+    subjectA.onNext("a3")
+    subjectB.onNext("b2")
+    subjectA.onNext("a4")
+}
+```
+
+运行结果：
+
+```
+--- withLatestFrom example ---
+b1
+b1
+b2
 ```
 
 ### `zip`
@@ -1437,30 +1472,30 @@ Completed
 example("concat") {
     let var1 = BehaviorSubject(value: 0)
     let var2 = BehaviorSubject(value: 200)
-    
+
     // var3 is like an Observable<Observable<Int>>
     let var3 = BehaviorSubject(value: var1)
-    
+
     let d = var3
         .concat()
         .subscribe {
             print($0)
         }
-    
+
     var1.on(.Next(1))
     var1.on(.Next(2))
     var1.on(.Next(3))
     var1.on(.Next(4))
-    
+
     var3.on(.Next(var2))
-    
+
     var2.on(.Next(201))
-    
+
     var1.on(.Next(5))
     var1.on(.Next(6))
     var1.on(.Next(7))
     var1.on(.Completed)
-    
+
     var2.on(.Next(202))
     var2.on(.Next(203))
     var2.on(.Next(204))
